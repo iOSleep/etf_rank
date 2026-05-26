@@ -9,6 +9,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import run  # 这就是七星研究-日志_本地版.py
 
+def _is_trading_time():
+    """9:40-15:10 北京时间, 周一至周五"""
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    if now.weekday() >= 5:
+        return False
+    t = now.hour * 60 + now.minute
+    return 9*60+40 <= t <= 15*60+10
+
 def gen_html(results, targets, today, elapsed):
     """生成手机友好的排名页面"""
     passed = [r for r in results if r.get('filter_reason') is None]
@@ -120,6 +128,11 @@ if __name__ == '__main__':
     
     print(f'=== 七星高照 {today} ===')
     
+    # 非交易时段跳过
+    if not _is_trading_time():
+        print('⏸ 非交易时段(9:40-15:10)，跳过')
+        raise SystemExit(0)
+
     # 跑评分
     results, targets = run.run_etf_rank(today=today, auto_save=False, quiet=False, force_refresh=False)
     
