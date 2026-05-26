@@ -20,7 +20,7 @@ def _is_trading_time():
 def gen_html(results, targets, today, elapsed):
     """生成手机友好的排名页面"""
     passed = [r for r in results if r.get('filter_reason') is None]
-    failed = [r for r in results if r.get('filter_reason') is not None]
+    failed = sorted([r for r in results if r.get('filter_reason') is not None], key=lambda r: r.get('score', -999), reverse=True)
     
     def pct(v):
         if v is None: return '-'
@@ -37,10 +37,9 @@ def gen_html(results, targets, today, elapsed):
             <div class="top">
                 <span class="rank">{'🥇' if i==0 else '🥈' if i==1 else '🥉' if i==2 else '#'+str(i+1)}</span>
                 <div class="name"><b>{r['name']}</b><span class="code">{fmt_code(r['etf'])}</span></div>
-                <div class="status green">通过</div>
+                <span class="status green">得分 {r["score"]:.4f}</span>
             </div>
             <div class="metrics">
-                <span>得分 <b>{r["score"]:.4f}</b></span>
                 <span>年化 <b class="{ann_cls}">{pct(r.get("annual"))}</b></span>
                 <span>R² <b>{r.get("r2",0):.4f}</b></span>
             </div>
@@ -91,29 +90,29 @@ def gen_html(results, targets, today, elapsed):
 <title>七星高照ETF行情</title>
 <style>
 * {{margin:0;padding:0;box-sizing:border-box}}
-body {{font-family:-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a;max-width:480px;margin:0 auto;padding:12px}}
-h1 {{font-size:22px;text-align:center;padding:16px 0 4px;display:flex;align-items:center;justify-content:center;gap:8px}}
-.ts {{text-align:center;color:#999;font-size:12px;margin-bottom:12px}}
-.stat {{display:flex;justify-content:center;gap:24px;font-size:13px;margin-bottom:8px}}
+body {{font-family:-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a;max-width:480px;margin:0 auto;padding:8px}}
+h1 {{font-size:18px;text-align:center;padding:8px 0 2px}}
+.ts {{text-align:center;color:#999;font-size:11px;margin-bottom:8px}}
+.stat {{display:flex;justify-content:center;gap:16px;font-size:12px;margin-bottom:6px}}
 .stat .g {{color:#16a34a}} .stat .r {{color:#dc2626}}
-.signal {{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:14px;text-align:center;font-size:16px;margin-bottom:12px}}
-.card {{background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}}
-.card.pass {{border-left:4px solid #16a34a}}
-.card.fail {{border-left:4px solid #dc2626;opacity:0.85}}
-.top {{display:flex;align-items:center;gap:10px}}
-.rank {{font-size:24px;min-width:36px;text-align:center}}
-.name {{flex:1;min-width:0}} .name b {{display:block;font-size:15px}} .code {{font-size:11px;color:#999}}
-.status {{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}}
+.signal {{background:#fef3c7;border-radius:8px;padding:8px 12px;text-align:center;font-size:13px;margin-bottom:8px}}
+.card {{background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:4px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}}
+.card.pass {{border-left:3px solid #16a34a}}
+.card.fail {{border-left:3px solid #dc2626;opacity:0.8}}
+.top {{display:flex;align-items:center;gap:6px}}
+.rank {{font-size:16px;min-width:24px;text-align:center}}
+.name {{flex:1;min-width:0}} .name b {{font-size:13px}} .code {{font-size:10px;color:#999}}
+.status {{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600}}
 .green {{background:#dcfce7;color:#16a34a}}
 .red {{background:#fee2e2;color:#dc2626}}
-.metrics {{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font-size:13px;color:#555}}
+.metrics {{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:11px;color:#666}}
 .metrics b {{color:#1a1a1a}} .pos {{color:#16a34a}} .neg {{color:#dc2626}}
-.footer {{text-align:center;color:#bbb;font-size:11px;padding:20px 0 40px}}
+.footer {{text-align:center;color:#bbb;font-size:10px;padding:16px 0 32px}}
 </style>
 </head>
 <body>
 <h1>⭐ 七星高照ETF行情</h1>
-<p class="ts">更新时间：{datetime.datetime.now().strftime('%Y-%m-%d %H:%M')} | ⏱ {elapsed}s</p>
+<p class="ts">更新时间：{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y-%m-%d %H:%M')} | ⏱ {elapsed}s</p>
 <div class="stat"><span>共 {len(results)} 只</span><span class="g">✅ 通过 {len(passed)}</span><span class="r">⛔ 过滤 {len(failed)}</span></div>
 {signal_html}
 {rows_html}

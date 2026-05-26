@@ -87,13 +87,15 @@ def _try_baidu(code):
                 'amount': float(parts[7]),
             })
         
-        df = pd.DataFrame(rows)
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.sort_values('date').reset_index(drop=True)
-        print(f"✅ [百度 fallback] {code}: {len(df)} 条")
-        return df
+        if len(rows) == 0:
+        return None
+    df = pd.DataFrame(rows)
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.sort_values('date').reset_index(drop=True)
+    print(f"✅ [百度] {code}: {len(df)} 条")
+    return df
     except Exception as e:
-        print(f"⚠️ [百度API失败] {code}: {e}")
+        print(f"⚠️ [百度失败] {code}: {e}")
         return None
 
 
