@@ -1,6 +1,9 @@
 name: ETF Ranking
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     # 每10分钟, 周一至周五 UTC 1:00-7:59 = 北京时间 9:00-15:59
     - cron: '*/10 1-7 * * 1-5'
