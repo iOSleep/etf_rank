@@ -133,7 +133,7 @@ if __name__ == '__main__':
         raise SystemExit(0)
 
     # 跑评分
-    results, targets, all_items = run.run_etf_rank(today=today, auto_save=False, quiet=True, force_refresh=False)
+    results, targets, all_items = run.run_etf_rank(today=today, auto_save=False, quiet=False, force_refresh=False)
     
     elapsed = time.time() - t0
     
