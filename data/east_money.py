@@ -87,7 +87,7 @@ def _try_baidu(code):
                 'amount': float(parts[7]),
             })
         
-        if len(rows) == 0:
+        if len(rows) < 25:
             return None
         df = pd.DataFrame(rows)
         df['date'] = pd.to_datetime(df['date'])
@@ -242,11 +242,13 @@ def get_cached_klines(code, max_age_days=1):
     today_ts = pd.Timestamp(today_str)
     
     if df_cached is not None and len(df_cached) > 0:
-        # 找到缓存中最后一条数据的日期
         last_date = df_cached['date'].max()
         
-        if last_date >= today_ts:
-            # 缓存已经包含今天的数据，无需更新
+        if len(df_cached) < 25:
+            # 缓存条数不足，清空重拉
+            print(f"⚠️ [缓存] {code}: 仅{len(df_cached)}条，清空重拉", flush=True)
+            df_cached = None
+        elif last_date >= today_ts:
             print(f"📦 [缓存] {code}: {len(df_cached)} 条 (最新: {last_date.strftime('%Y-%m-%d')})")
             return df_cached
         

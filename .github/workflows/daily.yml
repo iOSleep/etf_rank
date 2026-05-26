@@ -22,7 +22,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: cache
-          key: klines-v3
+          key: klines-v4
       - run: python main.py
       - uses: peaceiris/actions-gh-pages@v4
         with:
