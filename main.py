@@ -133,12 +133,12 @@ if __name__ == '__main__':
         raise SystemExit(0)
 
     # 跑评分
-    results, targets = run.run_etf_rank(today=today, auto_save=False, quiet=False, force_refresh=False)
+    results, targets, all_items = run.run_etf_rank(today=today, auto_save=False, quiet=True, force_refresh=False)
     
     elapsed = time.time() - t0
     
     # 生成 HTML
-    html = gen_html(results, targets, today, f'{elapsed:.1f}')
+    html = gen_html(all_items, targets, today, f'{elapsed:.1f}')
     os.makedirs('output', exist_ok=True)
     with open('output/index.html', 'w', encoding='utf-8') as f:
         f.write(html)

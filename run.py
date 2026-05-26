@@ -555,8 +555,11 @@ def run_etf_rank(today=None, auto_save=True, quiet=False, force_refresh=False):
         '数据不足': 0, '非上涨趋势': 0, '强势': 0, '未知原因': 0,
     }
     
+    all_items = []  # 保存所有结果（含过滤）
+    
     for etf in g.etf_pool:
         res = calculate_momentum_metrics(kc, etf, today)
+        all_items.append(res)
         
         # 检查是否通过过滤且有得分
         if res.get('filter_reason') is None and 'score' in res:
@@ -662,7 +665,7 @@ def run_etf_rank(today=None, auto_save=True, quiet=False, force_refresh=False):
     if not quiet:
         print(f"\n⏱ 总耗时: {time.time()-t0:.1f}s")
     
-    return results, target_etfs
+    return results, target_etfs, all_items
 
 # ==================== 命令行入口 ====================
 
