@@ -145,55 +145,47 @@ def get_all_klines(code, market=None, retries=3):
         'fqt': '1',
     }
     
+    # ===== 优先百度（海外节点友好）=====
+    print(f"🔄 [百度] {code}...", flush=True)
+    df = _try_baidu(code)
+    if df is not None:
+        return df
+
+    # ===== 兜底：东方财富 =====
     last_error = None
     for attempt in range(retries + 1):
         try:
             if attempt > 0:
                 delay = attempt * random.uniform(1, 3)
-                print(f"⏳ 重试 {code} (第{attempt}次, 等待{delay:.1f}秒)...")
+                print(f"⏳ 东财重试 {code} (第{attempt}次, 等待{delay:.1f}秒)...")
                 time.sleep(delay)
-            
             sess = _new_session()
             r = sess.get(url, params=params, timeout=30)
             data = r.json()
             klines = data.get('data', {}).get('klines', [])
-            
             if not klines:
-                print(f"⚠️ {code} 无K线数据")
-                return None
-            
+                print(f"⚠️ {code} 东财无数据")
+                continue
             rows = []
             for k in klines:
                 parts = k.split(',')
                 rows.append({
-                    'date': parts[0],
-                    'open': float(parts[1]),
-                    'close': float(parts[2]),
-                    'high': float(parts[3]),
-                    'low': float(parts[4]),
-                    'volume': float(parts[5]),
-                    'amount': float(parts[6]),
+                    'date': parts[0], 'open': float(parts[1]), 'close': float(parts[2]),
+                    'high': float(parts[3]), 'low': float(parts[4]),
+                    'volume': float(parts[5]), 'amount': float(parts[6]),
                 })
-            
             df = pd.DataFrame(rows)
             df['date'] = pd.to_datetime(df['date'])
             df = df.sort_values('date').reset_index(drop=True)
             return df
-        
         except Exception as e:
             last_error = e
     
-    print(f"❌ 获取 {code} K线失败 (已重试{retries}次): {last_error}")
-    
-    # ===== Fallback 1: mootdx TCP =====
-    print(f"🔄 [切换 mootdx] {code}...", flush=True)
+    print(f"❌ 东财失败 (已重试{retries}次): {last_error}")
+
+    # ===== Fallback: mootdx TCP =====
+    print(f"🔄 [mootdx] {code}...", flush=True)
     df = _try_mootdx(code, market)
-    if df is not None:
-        return df
-    
-    # ===== Fallback 2: 百度股市通 =====
-    print(f"🔄 [切换 百度] {code}...", flush=True)
-    df = _try_baidu(code)
     if df is not None:
         return df
     
@@ -310,7 +302,44 @@ def _fetch_klines_range(code, market=None, beg='19000101', end='20500101', retri
         'rtntype': '6', 'secid': secid, 'klt': '101', 'fqt': '1',
     }
     
-    # East Money
+    # 优先百度
+    try:
+        url_bd = "https://finance.pae.baidu.com/selfselect/getstockquotation"
+        params_bd = {
+            "all": "1", "isIndex": "false", "isBk": "false", "isBlock": "false",
+            "isFutures": "false", "isStock": "true", "newFormat": "1",
+            "group": "quotation_kline_ab", "finClientType": "pc",
+            "code": code, "start_time": "", "ktype": "1",
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/vnd.finance-web.v1+json",
+            "Origin": "https://gushitong.baidu.com",
+            "Referer": "https://gushitong.baidu.com/",
+        }
+        r = requests.get(url_bd, params=params_bd, headers=headers, timeout=15)
+        md = r.json().get("Result", {}).get("newMarketData", {})
+        raw = md.get("marketData", "")
+        if raw:
+            rows = []
+            for line in raw.split(";"):
+                if not line.strip(): continue
+                parts = line.split(",")
+                if len(parts) < 8: continue
+                rows.append({
+                    'date': parts[1], 'open': float(parts[2]), 'close': float(parts[3]),
+                    'high': float(parts[5]), 'low': float(parts[6]),
+                    'volume': float(parts[4]), 'amount': float(parts[7]),
+                })
+            df = pd.DataFrame(rows)
+            df['date'] = pd.to_datetime(df['date'])
+            beg_dt = pd.Timestamp(beg); end_dt = pd.Timestamp(end)
+            df = df[(df['date'] >= beg_dt) & (df['date'] <= end_dt)]
+            if len(df) > 0: return df
+    except Exception as e:
+        pass
+
+    # 兜底：东方财富
     last_error = None
     for attempt in range(retries + 1):
         try:
@@ -320,13 +349,11 @@ def _fetch_klines_range(code, market=None, beg='19000101', end='20500101', retri
             r = sess.get(url, params=params, timeout=30)
             data = r.json()
             klines = data.get('data', {}).get('klines', [])
-            if not klines:
-                return None
+            if not klines: return None
             rows = []
             for k in klines:
                 parts = k.split(',')
-                if len(parts) < 7:
-                    continue
+                if len(parts) < 7: continue
                 rows.append({
                     'date': parts[0], 'open': float(parts[1]), 'close': float(parts[2]),
                     'high': float(parts[3]), 'low': float(parts[4]),
