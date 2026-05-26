@@ -1,0 +1,38 @@
+name: ETF Daily Ranking
+
+on:
+  schedule:
+    # 北京时间 15:30 (UTC 7:30)
+    - cron: '30 7 * * 1-5'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install numpy pandas requests
+
+      - name: Cache K-line data
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: klines-${{ runner.os }}-${{ hashFiles('run.py') }}-v2
+
+      - name: Run ETF Ranking
+        run: python main.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          force_orphan: true
