@@ -19,7 +19,7 @@ def _is_trading_time():
 
 def gen_html(results, targets, today, elapsed):
     """生成手机友好的排名页面"""
-    passed = [r for r in results if r.get('filter_reason') is None]
+    passed = sorted([r for r in results if r.get('filter_reason') is None], key=lambda r: r.get('score', -999), reverse=True)
     failed = sorted([r for r in results if r.get('filter_reason') is not None], key=lambda r: r.get('score', -999), reverse=True)
     
     def pct(v):
