@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../models/etf_result.dart';
 import 'package:provider/provider.dart';
 import '../state/ranking_store.dart';
+import '../engine/config.dart';
 import 'widgets/stats_bar.dart';
 import 'widgets/signal_banner.dart';
 import 'widgets/rank_card.dart';
@@ -57,8 +59,32 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _RankingTab extends StatelessWidget {
+class _RankingTab extends StatefulWidget {
   const _RankingTab();
+
+  @override
+  State<_RankingTab> createState() => _RankingTabState();
+}
+
+class _RankingTabState extends State<_RankingTab> {
+  String _query = '';
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  List<EtfResult> _filter(List<EtfResult> items) {
+    if (_query.isEmpty) return items;
+    final q = _query.toLowerCase();
+    return items.where((r) {
+      return r.name.toLowerCase().contains(q) ||
+          r.etf.toLowerCase().contains(q) ||
+          Config.cleanCode(r.etf).contains(q);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +92,6 @@ class _RankingTab extends StatelessWidget {
       builder: (context, store, _) {
         final state = store.state;
 
-        // 1. 初始加载中
         if (state.loading && state.allItems.isEmpty) {
           return Center(
             child: Column(
@@ -81,7 +106,6 @@ class _RankingTab extends StatelessWidget {
           );
         }
 
-        // 2. 加载出错
         if (state.error != null && state.allItems.isEmpty) {
           return Center(
             child: Padding(
@@ -104,7 +128,6 @@ class _RankingTab extends StatelessWidget {
           );
         }
 
-        // 3. 初始空状态
         if (state.allItems.isEmpty && !state.loading) {
           return RefreshIndicator(
             onRefresh: () => store.refresh(),
@@ -127,15 +150,46 @@ class _RankingTab extends StatelessWidget {
           );
         }
 
-        // 4. 正常数据展示
-        final passed = state.passed;
-        final failed = state.failed;
+        final allPassed = state.passed;
+        final allFailed = state.failed;
+        final passed = _filter(allPassed);
+        final failed = _filter(allFailed);
 
         return RefreshIndicator(
           onRefresh: () => store.refresh(),
           child: ListView(
             padding: const EdgeInsets.only(top: 4),
             children: [
+              // 搜索框
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: TextField(
+                  controller: _controller,
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: '搜索 ETF 名称或代码...',
+                    hintStyle: const TextStyle(fontSize: 13),
+                    prefixIcon: const Icon(Icons.search, size: 18),
+                    suffixIcon: _query.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 16),
+                            onPressed: () {
+                              _controller.clear();
+                              setState(() => _query = '');
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                ),
+              ),
+
               StatsBar(store: store),
               const SizedBox(height: 4),
               if (state.loading)
@@ -143,7 +197,8 @@ class _RankingTab extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 4),
                   child: LinearProgressIndicator(),
                 ),
-              if (state.targets.isNotEmpty) SignalBanner(targets: state.targets),
+              if (state.targets.isNotEmpty && _query.isEmpty)
+                SignalBanner(targets: state.targets),
               if (passed.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 for (int i = 0; i < passed.length; i++)
@@ -151,14 +206,24 @@ class _RankingTab extends StatelessWidget {
               ],
               if (failed.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('已过滤', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    _query.isNotEmpty ? '搜索结果 - 已过滤' : '已过滤',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+                  ),
                 ),
                 const SizedBox(height: 2),
                 for (int i = 0; i < failed.length; i++)
                   RankCard(result: failed[i], index: i + 1, isPassed: false),
               ],
+              if (_query.isNotEmpty && passed.isEmpty && failed.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 40),
+                  child: Center(
+                    child: Text('无匹配结果', style: TextStyle(color: Colors.grey)),
+                  ),
+                ),
               const SizedBox(height: 40),
             ],
           ),
