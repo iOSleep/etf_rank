@@ -54,7 +54,7 @@ class _RankCardState extends State<RankCard> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             // ── Top: rank + name/code + [score badge] ──
             Row(children: [
-              SizedBox(width: 28, child: Text(_rankIcon(), style: const TextStyle(fontSize: 16), textAlign: TextAlign.center)),
+              SizedBox(width: 32, child: Text(_rankIcon(), style: const TextStyle(fontSize: 16), textAlign: TextAlign.center)),
               const SizedBox(width: 4),
               Expanded(child: Row(children: [
                 Flexible(child: Text(r.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: small ? red : Colors.black87), overflow: TextOverflow.ellipsis)),
