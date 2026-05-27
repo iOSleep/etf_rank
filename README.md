@@ -1,19 +1,17 @@
-# 七星高照 ETF 行情
+# etf_rank_app
 
-手机浏览器打开，实时查看 ETF 动量评分排名。
+A new Flutter project.
 
-## 工作原理
+## Getting Started
 
-GitHub Actions 每个交易日 15:30 自动运行 Python 脚本，拉取行情数据计算得分，生成网页发布到 GitHub Pages。
+This project is a starting point for a Flutter application.
 
-## 查看地址
+A few resources to get you started if this is your first Flutter project:
 
-`https://你的用户名.github.io/etf_rank`
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-## 本地运行
-
-```bash
-pip install -r requirements.txt
-python main.py
-open output/index.html
-```
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
