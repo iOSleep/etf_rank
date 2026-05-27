@@ -66,41 +66,68 @@ class _RankingTab extends StatelessWidget {
       builder: (context, store, _) {
         final state = store.state;
 
+        // 1. 初始加载中
         if (state.loading && state.allItems.isEmpty) {
-          return ListView(
-            children: [
-              const SizedBox(height: 80),
-              const Center(child: CircularProgressIndicator()),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(store.status, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-              ),
-            ],
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 60),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(store.status, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              ],
+            ),
           );
         }
 
+        // 2. 加载出错
         if (state.error != null && state.allItems.isEmpty) {
-          return ListView(
-            children: [
-              const SizedBox(height: 80),
-              Center(
-                child: Column(
-                  children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                    const SizedBox(height: 12),
-                    Text(state.error!, style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => store.refresh(),
-                      child: const Text('重试'),
-                    ),
-                  ],
-                ),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off, size: 56, color: Color(0xFFCCCCCC)),
+                  const SizedBox(height: 16),
+                  Text(state.error!, style: const TextStyle(color: Colors.red, fontSize: 13), textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => store.refresh(),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('重试'),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         }
 
+        // 3. 初始空状态
+        if (state.allItems.isEmpty && !state.loading) {
+          return RefreshIndicator(
+            onRefresh: () => store.refresh(),
+            child: ListView(
+              children: const [
+                SizedBox(height: 140),
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.show_chart, size: 64, color: Color(0xFFDDDDDD)),
+                      SizedBox(height: 20),
+                      Text('下拉刷新获取数据', style: TextStyle(color: Colors.grey, fontSize: 15)),
+                      SizedBox(height: 8),
+                      Text('基于加权动量因子 · 每日评分', style: TextStyle(color: Color(0xFFCCCCCC), fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 4. 正常数据展示
         final passed = state.passed;
         final failed = state.failed;
 
@@ -109,10 +136,8 @@ class _RankingTab extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.only(top: 4),
             children: [
-              if (state.allItems.isNotEmpty) ...[
-                StatsBar(store: store),
-                const SizedBox(height: 4),
-              ],
+              StatsBar(store: store),
+              const SizedBox(height: 4),
               if (state.loading)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 4),
@@ -134,10 +159,6 @@ class _RankingTab extends StatelessWidget {
                 for (int i = 0; i < failed.length; i++)
                   RankCard(result: failed[i], index: i + 1, isPassed: false),
               ],
-              const SizedBox(height: 16),
-              const Center(
-                child: Text('基于加权动量因子 · 每日自动更新', style: TextStyle(color: Color(0xFFBBBBBB), fontSize: 10)),
-              ),
               const SizedBox(height: 40),
             ],
           ),
