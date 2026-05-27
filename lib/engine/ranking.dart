@@ -52,7 +52,7 @@ class RankingEngine {
       if (klines.length < Config.lookbackDays) {
         final reason = '⚠️ 数据不足(需${Config.lookbackDays}天, 仅${klines.length}天)';
         log.warn('$etf $name: $reason');
-        allItems.add(EtfResult(etf: etf, name: name, filterReason: reason));
+        allItems.add(EtfResult(etf: etf, name: name, klinesData: klines, filterReason: reason));
         filtered++;
         continue;
       }
@@ -107,7 +107,7 @@ class RankingEngine {
           etf: etf, name: name, score: score, annual: annual,
           r2: r2, shortAnnual: shortAnnual,
           premium: navData?['premium_rate'] as double?,
-          changePct: changePct, filterReason: filterReason,
+          changePct: changePct, klinesData: klines, filterReason: filterReason,
         ));
         filtered++;
       } else if (score <= Config.minScoreThreshold) {
@@ -116,7 +116,7 @@ class RankingEngine {
         allItems.add(EtfResult(
           etf: etf, name: name, score: score, annual: annual,
           r2: r2, shortAnnual: shortAnnual,
-          premium: navData?['premium_rate'] as double?, changePct: changePct, filterReason: reason,
+          premium: navData?['premium_rate'] as double?, changePct: changePct, klinesData: klines, filterReason: reason,
         ));
         filtered++;
       } else if (score >= Config.maxScoreThreshold) {
@@ -125,7 +125,7 @@ class RankingEngine {
         allItems.add(EtfResult(
           etf: etf, name: name, score: score, annual: annual,
           r2: r2, shortAnnual: shortAnnual,
-          premium: navData?['premium_rate'] as double?, changePct: changePct, filterReason: reason,
+          premium: navData?['premium_rate'] as double?, changePct: changePct, klinesData: klines, filterReason: reason,
         ));
         filtered++;
       } else {
@@ -134,7 +134,7 @@ class RankingEngine {
           etf: etf, name: name, score: score, annual: annual,
           r2: r2, shortAnnual: shortAnnual,
           premium: navData?['premium_rate'] as double?,
-          changePct: changePct, filterReason: null,
+          changePct: changePct, klinesData: klines, filterReason: null,
         ));
         passed++;
       }

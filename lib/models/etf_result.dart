@@ -8,6 +8,7 @@ class EtfResult {
   final double? shortAnnual; // short-term annualized return
   final double? premium;    // premium rate
   final double? changePct;  // real-time change % (e.g. 0.05 = 5%)
+  final List<dynamic>? klinesData; // cached K-line rows for chart
   final String? filterReason; // null means passed all filters
 
   const EtfResult({
@@ -19,6 +20,7 @@ class EtfResult {
     this.shortAnnual,
     this.premium,
     this.changePct,
+    this.klinesData,
     this.filterReason,
   });
 
@@ -47,7 +49,7 @@ class EtfResult {
         'shortAnnual': shortAnnual,
         'premium': premium,
         'changePct': changePct,
-        'filterReason': filterReason,
+        'klinesData': klinesData?.map((k) => (k as dynamic).toJson()).toList(),
       };
 }
 
