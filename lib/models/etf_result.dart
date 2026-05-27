@@ -1,15 +1,14 @@
-/// Result for a single ETF after momentum calculation and filtering.
 class EtfResult {
-  final String etf;    // e.g. "518880.XSHG"
+  final String etf;
   final String name;
-  final double? score;      // annualized_return * r2
-  final double? annual;     // annualized return from weighted regression
-  final double? r2;         // R-squared
-  final double? shortAnnual; // short-term annualized return
-  final double? premium;    // premium rate
-  final double? changePct;  // real-time change % (e.g. 0.05 = 5%)
-  final List<dynamic>? klinesData; // cached K-line rows for chart
-  final String? filterReason; // null means passed all filters
+  final double? score;
+  final double? annual;
+  final double? r2;
+  final double? shortAnnual;
+  final double? premium;
+  final double? changePct;
+  final List<dynamic>? klinesData;
+  final String? filterReason;
 
   const EtfResult({
     required this.etf,
@@ -24,9 +23,20 @@ class EtfResult {
     this.filterReason,
   });
 
+  factory EtfResult.fromJson(Map<String, dynamic> json) => EtfResult(
+    etf: json['etf'] as String,
+    name: json['name'] as String,
+    score: (json['score'] as num?)?.toDouble(),
+    annual: (json['annual'] as num?)?.toDouble(),
+    r2: (json['r2'] as num?)?.toDouble(),
+    shortAnnual: (json['shortAnnual'] as num?)?.toDouble(),
+    premium: (json['premium'] as num?)?.toDouble(),
+    changePct: (json['changePct'] as num?)?.toDouble(),
+    filterReason: json['filterReason'] as String?,
+  );
+
   bool get passed => filterReason == null && score != null;
 
-  /// Extract short filter tag for UI display.
   String get filterTag {
     if (filterReason == null) return '';
     final r = filterReason!;
@@ -41,23 +51,22 @@ class EtfResult {
   }
 
   Map<String, dynamic> toJson() => {
-        'etf': etf,
-        'name': name,
-        'score': score,
-        'annual': annual,
-        'r2': r2,
-        'shortAnnual': shortAnnual,
-        'premium': premium,
-        'changePct': changePct,
-        'klinesData': klinesData?.map((k) => (k as dynamic).toJson()).toList(),
-      };
+    'etf': etf,
+    'name': name,
+    'score': score,
+    'annual': annual,
+    'r2': r2,
+    'shortAnnual': shortAnnual,
+    'premium': premium,
+    'changePct': changePct,
+    'filterReason': filterReason,
+  };
 }
 
-/// Overall ranking state for the UI.
 class RankingState {
-  final List<EtfResult> results;   // passed, sorted by score desc
-  final List<EtfResult> allItems;  // all (passed + filtered)
-  final List<EtfResult> targets;   // selected holdings (top N)
+  final List<EtfResult> results;
+  final List<EtfResult> allItems;
+  final List<EtfResult> targets;
   final bool loading;
   final String? lastUpdate;
   final String? error;
@@ -71,9 +80,22 @@ class RankingState {
     this.error,
   });
 
+  factory RankingState.fromJson(Map<String, dynamic> json) => RankingState(
+    results: (json['results'] as List<dynamic>?)?.map((e) => EtfResult.fromJson(e as Map<String, dynamic>)).toList() ?? const [],
+    allItems: (json['allItems'] as List<dynamic>?)?.map((e) => EtfResult.fromJson(e as Map<String, dynamic>)).toList() ?? const [],
+    targets: (json['targets'] as List<dynamic>?)?.map((e) => EtfResult.fromJson(e as Map<String, dynamic>)).toList() ?? const [],
+    lastUpdate: json['lastUpdate'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'results': results.map((e) => e.toJson()).toList(),
+    'allItems': allItems.map((e) => e.toJson()).toList(),
+    'targets': targets.map((e) => e.toJson()).toList(),
+    'lastUpdate': lastUpdate,
+  };
+
   List<EtfResult> get passed => results;
   List<EtfResult> get failed => allItems.where((r) => !r.passed).toList();
-
   int get totalCount => allItems.length;
   int get passedCount => results.length;
   int get failedCount => totalCount - passedCount;

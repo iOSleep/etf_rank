@@ -112,7 +112,7 @@ class _RankCardState extends State<RankCard> {
                                   ? const Color(0xFFDC2626)
                                   : Colors.black87,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            maxLines: 3, overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -201,7 +201,7 @@ class _RankCardState extends State<RankCard> {
                         result.filterReason ?? '',
                         style:
                             const TextStyle(fontSize: 11, color: Colors.grey),
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3, overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

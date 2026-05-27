@@ -145,6 +145,7 @@ class RankingEngine {
   }
 
   static RankingState buildState(List<EtfResult> allItems) {
+    allItems.sort((a, b) => (b.score ?? -999).compareTo(a.score ?? -999));
     final passed = allItems
         .where((r) => r.passed)
         .toList()
