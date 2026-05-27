@@ -8,14 +8,7 @@ class RankCard extends StatefulWidget {
   final EtfResult result;
   final int index;
   final bool isPassed;
-
-  const RankCard({
-    super.key,
-    required this.result,
-    required this.index,
-    required this.isPassed,
-  });
-
+  const RankCard({super.key, required this.result, required this.index, required this.isPassed});
   @override
   State<RankCard> createState() => _RankCardState();
 }
@@ -25,8 +18,7 @@ class _RankCardState extends State<RankCard> {
 
   String _pct(double? v) {
     if (v == null) return '-';
-    final sign = v >= 0 ? '+' : '';
-    return '$sign${(v * 100).toStringAsFixed(2)}%';
+    return '${v >= 0 ? "+" : ""}${(v * 100).toStringAsFixed(2)}%';
   }
 
   String _rankIcon() {
@@ -39,278 +31,127 @@ class _RankCardState extends State<RankCard> {
 
   @override
   Widget build(BuildContext context) {
-    final result = widget.result;
-    final displayCode = Config.cleanCode(result.etf);
-    final isSmall = Config.isSmall(result.etf);
-    final borderColor = widget.isPassed
-        ? const Color(0xFF16A34A)
-        : const Color(0xFFDC2626);
-    final statusColor = widget.isPassed
-        ? const Color(0xFF16A34A)
-        : const Color(0xFFDC2626);
-    final statusBg = widget.isPassed
-        ? const Color(0xFFDCFCE7)
-        : const Color(0xFFFEE2E2);
-    final statusText = widget.isPassed
-        ? '得分 ${result.score?.toStringAsFixed(4) ?? "-"}'
-        : result.filterTag;
-
-    final annVal = result.annual ?? 0;
-    final annColor =
-        annVal > 0 ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
-
-    final change = result.changePct;
-    final changeColor = (change ?? 0) >= 0
-        ? const Color(0xFFDC2626)
-        : const Color(0xFF16A34A);
+    final r = widget.result;
+    final code = Config.cleanCode(r.etf);
+    final small = Config.isSmall(r.etf);
+    const green = Color(0xFF16A34A);
+    const red = Color(0xFFDC2626);
+    final border = widget.isPassed ? green : red;
+    final bg = widget.isPassed ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2);
+    final tag = widget.isPassed ? '得分 ${r.score?.toStringAsFixed(4) ?? "-"}' : r.filterTag;
+    final ann = r.annual ?? 0;
+    final annC = ann > 0 ? green : red;
+    final chg = r.changePct;
+    final chgC = (chg ?? 0) >= 0 ? red : green;
 
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 250), curve: Curves.easeInOut,
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border(left: BorderSide(color: borderColor, width: 3)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 2,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8),
+          border: Border(left: BorderSide(color: border, width: 3)),
+          boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 2, offset: Offset(0, 1))]),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top row
-              Row(
-                children: [
-                  SizedBox(
-                    width: 28,
-                    child: Text(
-                      _rankIcon(),
-                      style: const TextStyle(fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            result.name,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: isSmall
-                                  ? const Color(0xFFDC2626)
-                                  : Colors.black87,
-                            ),
-                            maxLines: 3, overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          displayCode,
-                          style: const TextStyle(
-                              fontSize: 10, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (change != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      margin: const EdgeInsets.only(right: 4),
-                      decoration: BoxDecoration(
-                        color: change >= 0
-                            ? const Color(0xFFFEE2E2)
-                            : const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        _pct(change),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: changeColor,
-                        ),
-                      ),
-                    ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      statusText,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                      ),
-                    ),
-                  ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              SizedBox(width: 28, child: Text(_rankIcon(), style: const TextStyle(fontSize: 16), textAlign: TextAlign.center)),
+              const SizedBox(width: 4),
+              Expanded(child: Row(children: [
+                Flexible(child: Text(r.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: small ? red : Colors.black87), overflow: TextOverflow.ellipsis)),
+                const SizedBox(width: 6),
+                Text(code, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              ])),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+                child: Text(tag, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: widget.isPassed ? green : red))),
+            ]),
+            const SizedBox(height: 6),
+            Row(children: [
+              if (widget.isPassed && r.annual != null) ...[
+                const Text('年化 ', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(_pct(r.annual), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: annC)),
+                const SizedBox(width: 8),
+                const Text('R² ', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(r.r2?.toStringAsFixed(4) ?? '-', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+                if (chg != null) ...[
+                  const SizedBox(width: 8),
+                  Text(_pct(chg), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: chgC)),
                 ],
-              ),
-              const SizedBox(height: 6),
-              // Bottom row: metrics + expand hint
-              Row(
-                children: [
-                  if (widget.isPassed && result.annual != null) ...[
-                    Text('年化 ',
-                        style:
-                            const TextStyle(fontSize: 11, color: Colors.grey)),
-                    Text(
-                      _pct(result.annual),
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: annColor),
-                    ),
-                    const SizedBox(width: 10),
-                    Text('R² ',
-                        style:
-                            const TextStyle(fontSize: 11, color: Colors.grey)),
-                    Text(
-                      result.r2?.toStringAsFixed(4) ?? '-',
-                      style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87),
-                    ),
-                  ],
-                  if (!widget.isPassed) ...[
-                    if (result.score != null) ...[
-                      Text('得分 ${result.score!.toStringAsFixed(4)}',
-                          style: const TextStyle(
-                              fontSize: 11, color: Colors.grey)),
-                      const SizedBox(width: 10),
-                    ],
-                    Flexible(
-                      child: Text(
-                        result.filterReason ?? '',
-                        style:
-                            const TextStyle(fontSize: 11, color: Colors.grey),
-                        maxLines: 3, overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
+              ],
+              if (!widget.isPassed) ...[
+                if (r.score != null) ...[
+                  Text('得分 ${r.score!.toStringAsFixed(4)}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  const SizedBox(width: 8),
                 ],
-              ),
-              // Expand: K-line chart
-              if (_expanded) _buildChart(result),
-            ],
-          ),
-        ),
-      ),
+                Expanded(child: Text(r.filterReason ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey), maxLines: 3, overflow: TextOverflow.ellipsis)),
+              ],
+              const Spacer(),
+              Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 16, color: Colors.grey),
+            ]),
+            if (_expanded) _chart(r),
+          ]))),
     );
   }
 
-  Widget _buildChart(EtfResult result) {
-    final raw = result.klinesData;
-    if (raw == null || raw.length < 5) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 12),
-        child: Text('K线数据不足', style: TextStyle(fontSize: 11, color: Colors.grey)),
-      );
-    }
+  Widget _chart(EtfResult r) {
+    final raw = r.klinesData;
+    if (raw == null || raw.length < 5) return const Padding(padding: EdgeInsets.only(top: 12), child: Text('K线数据不足', style: TextStyle(fontSize: 11, color: Colors.grey)));
 
-    // Extract close prices (last 30)
     final closes = <double>[];
     final dates = <String>[];
     for (final k in raw) {
-      if (k is KlineRow) {
-        closes.add(k.close);
-        dates.add('${k.date.month}/${k.date.day}');
-      }
+      if (k is KlineRow) { closes.add(k.close); dates.add('${k.date.month}/${k.date.day}'); }
     }
-    if (closes.length < 5) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 12),
-        child: Text('K线数据不足', style: TextStyle(fontSize: 11, color: Colors.grey)),
-      );
-    }
+    if (closes.length < 5) return const Padding(padding: EdgeInsets.only(top: 12), child: Text('K线数据不足', style: TextStyle(fontSize: 11, color: Colors.grey)));
 
-    final showCloses = closes.length > 30 ? closes.sublist(closes.length - 30) : closes;
-    final minY = showCloses.reduce((a, b) => a < b ? a : b);
-    final maxY = showCloses.reduce((a, b) => a > b ? a : b);
-    final pad = (maxY - minY) * 0.05;
+    final show = closes.length > 30 ? closes.sublist(closes.length - 30) : closes;
+    final sd = dates.length > 30 ? dates.sublist(dates.length - 30) : dates;
+    final min = show.reduce((a, b) => a < b ? a : b);
+    final max = show.reduce((a, b) => a > b ? a : b);
+    final pad = (max - min) * 0.08;
+    final up = show.last >= show.first;
+    final line = up ? const Color(0xFFDC2626) : const Color(0xFF16A34A);
+    final fill = up ? const Color(0xFFDC2626).withValues(alpha: 0.06) : const Color(0xFF16A34A).withValues(alpha: 0.06);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('近${30 > showCloses.length ? showCloses.length : 30}日收盘价',
-              style: TextStyle(fontSize: 10, color: Colors.grey)),
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 120,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: ((maxY + pad) - (minY - pad)) / 4,
-                  getDrawingHorizontalLine: (v) => FlLine(
-                    color: Colors.grey.shade200,
-                    strokeWidth: 0.5,
-                  ),
-                ),
-                titlesData: const FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                minY: minY - pad,
-                maxY: maxY + pad,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: List.generate(
-                      showCloses.length,
-                      (i) => FlSpot(i.toDouble(), showCloses[i]),
-                    ),
-                    isCurved: true,
-                    color: const Color(0xFF2563EB),
-                    barWidth: 1.5,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.08),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Text('近${show.length}日收盘价', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF555555))),
+          const Spacer(),
+          Text('${show.first.toStringAsFixed(3)} → ${show.last.toStringAsFixed(3)}', style: TextStyle(fontSize: 10, color: line, fontWeight: FontWeight.w500)),
+        ]),
+        const SizedBox(height: 6),
+        SizedBox(height: 140, child: LineChart(LineChartData(
+          gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: ((max + pad) - (min - pad)) / 4,
+            getDrawingHorizontalLine: (v) => FlLine(color: Colors.grey.shade300, strokeWidth: 0.5)),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 36,
+              getTitlesWidget: (v, _) => Padding(padding: const EdgeInsets.only(right: 4), child: Text(v.toStringAsFixed(2), style: const TextStyle(fontSize: 8, color: Color(0xFFAAAAAA)))))),
+            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 20,
+              interval: show.length > 15 ? (show.length / 4).ceilToDouble() : 1,
+              getTitlesWidget: (v, _) {
+                final i = v.toInt();
+                if (i < 0 || i >= sd.length) return const SizedBox.shrink();
+                return Padding(padding: const EdgeInsets.only(top: 4), child: Text(sd[i], style: const TextStyle(fontSize: 8, color: Color(0xFFBBBBBB))));
+              })),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-        ],
-      ),
-    );
+          borderData: FlBorderData(show: false), minY: min - pad, maxY: max + pad,
+          lineTouchData: LineTouchData(touchTooltipData: LineTouchTooltipData(getTooltipItems: (spots) => spots.map((s) {
+            final i = s.x.toInt();
+            final d = i >= 0 && i < sd.length ? sd[i] : '';
+            return LineTooltipItem('$d\n${s.y.toStringAsFixed(3)}', const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600));
+          }).toList())),
+          lineBarsData: [LineChartBarData(
+            spots: List.generate(show.length, (i) => FlSpot(i.toDouble(), show[i])),
+            isCurved: true, curveSmoothness: 0.3, color: line, barWidth: 2,
+            dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: true, color: fill),
+          )],
+        ))),
+      ]));
   }
 }
