@@ -12,7 +12,7 @@ class CacheService {
   static const String _table = 'klines';
   static const int _minRows = 25;
 
-  static const int _concurrency = 2;
+  static const int _concurrency = 1;
   static const int _batchDelayMs = 400; // 降到 400ms（已验证不会封）
   final _rng = math.Random();
 
@@ -116,7 +116,7 @@ class CacheService {
     int cacheHits = 0;
     int apiCalls = 0;
 
-    log.info('开始加载K线 (并发:$_concurrency, 需要更新才请求API)');
+    log.info('开始加载K线 (串行, 需要更新才请求API)');
 
     for (int i = 0; i < total; i += _concurrency) {
       final batch = codes.sublist(i, math.min(i + _concurrency, total));
