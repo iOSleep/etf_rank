@@ -19,7 +19,7 @@ void main() {
       ),
     );
 
-    expect(find.text('⭐ 七星高照ETF行情'), findsOneWidget);
+    expect(find.text('宽基ETF轮动'), findsOneWidget);
     expect(find.text('排名'), findsOneWidget);
     expect(find.text('日志'), findsOneWidget);
     // Default tab shows stats

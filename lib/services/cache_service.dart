@@ -63,44 +63,55 @@ class CacheService {
     return '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
   }
 
+  static List<KlineRow> _mergeKlines(List<KlineRow> old, List<KlineRow> fresh) {
+    final byDate = <DateTime, KlineRow>{};
+    for (final row in old) byDate[row.date] = row;
+    for (final row in fresh) byDate[row.date] = row;
+    final result = byDate.values.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return result;
+  }
+
   Future<List<KlineRow>> loadKlines(String code) async {
     final clean = Config.cleanCode(code);
     final cached = await getKlines(code);
 
-    // 缓存充足 → 直接返回
+    // 缓存充足 → 增量更新（merge 新数据，绝不删旧数据）
     if (cached.length >= _minRows) {
       final lastDate = cached.last.date;
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
       final yesterdayDate =
           DateTime(yesterday.year, yesterday.month, yesterday.day);
 
-      // 数据已是最新（截止昨天），完全走缓存
       if (!lastDate.isBefore(yesterdayDate)) {
         return cached;
       }
 
-      // 缺几天增量
       final nextDay = lastDate.add(const Duration(days: 1));
       final beg =
           '${nextDay.year}${nextDay.month.toString().padLeft(2, '0')}${nextDay.day.toString().padLeft(2, '0')}';
       final delta = await ApiService.fetchKlines(code, beg: beg, end: _yesterdayStr());
       if (delta != null && delta.isNotEmpty) {
         await insertKlines(code, delta);
-        cached.addAll(delta);
-        log.cache('$clean: 增量 ${delta.length}条 (总计 ${cached.length}条)');
+        final merged = _mergeKlines(cached, delta);
+        log.cache('$clean: 增量 ${delta.length}条 → merge后 ${merged.length}条');
+        return merged;
       }
       return cached;
     }
 
-    // 缓存不足 → 全量拉取
-    if (cached.isNotEmpty) {
-      final database = await db;
-      await database.delete(_table, where: 'code = ?', whereArgs: [clean]);
-    }
+    // 缓存不足 → 同样 merge，不删旧数据
     final fresh = await ApiService.fetchKlines(code, end: _yesterdayStr());
     if (fresh != null && fresh.isNotEmpty) {
       await insertKlines(code, fresh);
-      return fresh;
+      final merged = _mergeKlines(cached, fresh);
+      log.cache('$clean: 拉取 ${fresh.length}条 → merge后 ${merged.length}条');
+      return merged;
+    }
+
+    if (cached.isNotEmpty) {
+      log.warn('$clean: 获取失败，保留缓存 ${cached.length} 条');
+      return cached;
     }
     log.warn('$clean: 无K线数据');
     return [];

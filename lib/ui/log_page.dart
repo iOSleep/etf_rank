@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import '../services/log_service.dart';
 
+/// Show all logs except per-symbol scoring results and conclusions.
+bool _shouldShow(LogEntry e) {
+  if (e.level == LogLevel.warning || e.level == LogLevel.success) {
+    if (e.message.contains('得分')) return false;
+    if (e.level == LogLevel.warning && e.message.contains('数据不足')) return false;
+  }
+  return true;
+}
+
 class LogPage extends StatelessWidget {
   const LogPage({super.key});
 
@@ -9,15 +18,17 @@ class LogPage extends StatelessWidget {
     return ListenableBuilder(
       listenable: log,
       builder: (context, _) {
-        final logs = log.logs;
+        final allLogs = log.logs;
+        final logs = allLogs.where(_shouldShow).toList();
+
         if (logs.isEmpty) {
           return const Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.article_outlined, size: 48, color: Colors.grey),
+                Icon(Icons.check_circle_outline, size: 48, color: Color(0xFF16A34A)),
                 SizedBox(height: 12),
-                Text('暂无日志，下拉刷新开始', style: TextStyle(color: Colors.grey)),
+                Text('暂无日志', style: TextStyle(color: Colors.grey)),
               ],
             ),
           );
@@ -25,13 +36,12 @@ class LogPage extends StatelessWidget {
 
         return Column(
           children: [
-            // 顶部操作栏
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Row(
                 children: [
-                  Text('共 ${logs.length} 条', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text('日志 ${logs.length} 条', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => log.clear(),
@@ -40,13 +50,12 @@ class LogPage extends StatelessWidget {
                 ],
               ),
             ),
-            // 日志列表
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 itemCount: logs.length,
                 itemBuilder: (context, index) {
-                  final entry = logs[logs.length - 1 - index]; // 最新在上
+                  final entry = logs[logs.length - 1 - index];
                   final time = '${entry.time.hour.toString().padLeft(2, '0')}:${entry.time.minute.toString().padLeft(2, '0')}:${entry.time.second.toString().padLeft(2, '0')}';
 
                   Color? bgColor;

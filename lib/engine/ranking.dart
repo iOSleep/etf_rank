@@ -13,36 +13,37 @@ class RankingEngine {
 
   Future<List<EtfResult>> run({
     void Function(String status)? onStatus,
+    List<String>? codes,
   }) async {
     final allItems = <EtfResult>[];
-    const codes = Config.etfPool;
+    final pool = codes ?? Config.etfPool;
 
     onStatus?.call('正在加载K线数据...');
-    log.cache('开始加载 ${codes.length} 只ETF的K线数据...');
+    log.cache('开始加载 ${pool.length} 只ETF的K线数据...');
 
     final klineMap = await cache.loadAll(
-      codes,
+      pool,
       onProgress: (done, total) {
         onStatus?.call('加载K线 $done/$total...');
       },
     );
 
     final loadedCount = klineMap.values.where((k) => k.isNotEmpty).length;
-    log.cache('K线加载完成: $loadedCount/${codes.length} 只有数据');
+    log.cache('K线加载完成: $loadedCount/${pool.length} 只有数据');
 
     onStatus?.call('正在获取实时行情...');
     log.api('请求腾讯实时行情...');
-    final quotes = await ApiService.fetchRealTimeQuotes(codes);
+    final quotes = await ApiService.fetchRealTimeQuotes(pool);
     log.api('行情返回: ${quotes.length} 条');
 
     onStatus?.call('正在计算动量得分...');
-    log.compute('开始计算 ${codes.length} 只ETF的动量得分...');
+    log.compute('开始计算 ${pool.length} 只ETF的动量得分...');
 
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
 
     int passed = 0, filtered = 0;
-    for (final etf in codes) {
+    for (final etf in pool) {
       final clean = Config.cleanCode(etf);
       final klines = klineMap[etf] ?? [];
       final quote = quotes[clean];

@@ -7,6 +7,7 @@ import 'widgets/stats_bar.dart';
 import 'widgets/signal_banner.dart';
 import 'widgets/rank_card.dart';
 import 'log_page.dart';
+import 'pool_manage_tab.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,18 +23,19 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('⭐ 七星高照ETF行情'),
+        title: const Text('宽基ETF轮动'),
         centerTitle: true, backgroundColor: Colors.white, foregroundColor: Colors.black87, elevation: 0.5,
         actions: [
           if (_tab == 0)
             IconButton(icon: const Icon(Icons.refresh, size: 20), onPressed: () => context.read<RankingStore>().refresh(), tooltip: '刷新'),
         ],
       ),
-      body: IndexedStack(index: _tab, children: const [_RankingTab(), LogPage()]),
+      body: IndexedStack(index: _tab, children: const [_RankingTab(), PoolManageTab(), LogPage()]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _tab, onTap: (i) => setState(() => _tab = i),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: '排名'),
+          BottomNavigationBarItem(icon: Icon(Icons.manage_accounts), label: '标的'),
           BottomNavigationBarItem(icon: Icon(Icons.article_outlined), label: '日志'),
         ],
       ),

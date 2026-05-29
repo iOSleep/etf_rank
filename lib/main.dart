@@ -24,7 +24,7 @@ class EtfRankApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '七星高照ETF行情',
+      title: '宽基ETF轮动',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF16A34A)),
